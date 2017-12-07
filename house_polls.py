@@ -1,15 +1,17 @@
-import urllib2
+from urllib.request import urlopen
 import json
 import re
 import unicodedata
 
 h_poll = re.compile(r'hou', re.IGNORECASE)
+d_test = re.compile(r'dem', re.IGNORECASE)
 
 def printResults(data):
   # Use the json module to load the string data into a dictionary
   theJSON = json.loads(data)
 
-  for i in range(1 , len(theJSON['items'])):
+  for i in range(0 , len(theJSON['items'])):
+    # print (i)
     pollList = (theJSON['items'][i])
     questions = pollList["poll_questions"]
     # if h_poll.match()
@@ -17,14 +19,20 @@ def printResults(data):
     h = h_poll.search(h_test)
     # print h_poll
     if h:
-        print "ok"
-    else:
-        print "not ok"
+        resp = (questions[1]['sample_subpopulations'][0]['responses'])
+        for x in range(0, len(resp)):
+            party = (resp[x]['pollster_label'])
+            d = d_test.search(party)
+            if d:
+                # print (resp[x]['value'])
+                poll_value = resp[x]['value']
+                print (poll_value)
+                print (party)
 
 
   # now we can access the contents of the JSON like any other Python object
-  if 'count' in theJSON['items']:
-    print theJSON["items"]["title"] + "huh"
+  # if 'count' in theJSON['items']:
+  #   print theJSON["items"]["title"] + "huh"
 
 def main():
   # define a variable to hold the source URL
@@ -33,7 +41,7 @@ def main():
 
 
   # Open the URL and read the data
-  webUrl = urllib2.urlopen(urlData)
+  webUrl = urlopen(urlData)
   if (webUrl.getcode() == 200):
     print ("hey we in")
     data = webUrl.read()
@@ -41,7 +49,7 @@ def main():
     # print (data)
     printResults(data)
   else:
-    print "Received an error from server, cannot retrieve results " + str(webUrl.getcode())
+    print ("Received an error from server, cannot retrieve results " + str(webUrl.getcode()))
 
 if __name__ == "__main__":
   main()
