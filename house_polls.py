@@ -20,6 +20,7 @@ def printResults(data):
     # print h_poll
     if h:
         resp = (questions[1]['sample_subpopulations'][0]['responses'])
+        print (pollList['end_date'])
         for x in range(0, len(resp)):
             party = (resp[x]['pollster_label'])
             d = d_test.search(party)
