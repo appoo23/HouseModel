@@ -38,7 +38,7 @@ def printResults(data):
 def main():
   # define a variable to hold the source URL
 
-  urlData = "https://elections.huffingtonpost.com/pollster/api/v2/polls?question=18-US-House&sort=created_at"
+  urlData = "https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=next_cursor&question=18-US-House"
 
 
   # Open the URL and read the data
