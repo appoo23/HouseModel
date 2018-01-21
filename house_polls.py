@@ -1,56 +1,74 @@
-from urllib.request import urlopen
+from urllib2 import urlopen
 import json
 import re
 import unicodedata
-
-h_poll = re.compile(r'hou', re.IGNORECASE)
-d_test = re.compile(r'dem', re.IGNORECASE)
-
-def printResults(data):
-  # Use the json module to load the string data into a dictionary
-  theJSON = json.loads(data)
-
-  for i in range(0 , len(theJSON['items'])):
-    # print (i)
-    pollList = (theJSON['items'][i])
-    questions = pollList["poll_questions"]
-    # if h_poll.match()
-    h_test = questions[1]["question"]["name"]
-    h = h_poll.search(h_test)
-    # print h_poll
-    if h:
-        resp = (questions[1]['sample_subpopulations'][0]['responses'])
-        print (pollList['end_date'])
-        for x in range(0, len(resp)):
-            party = (resp[x]['pollster_label'])
-            d = d_test.search(party)
-            if d:
-                # print (resp[x]['value'])
-                poll_value = resp[x]['value']
-                print (poll_value)
-                print (party)
+import pandas as pd
 
 
-  # now we can access the contents of the JSON like any other Python object
-  # if 'count' in theJSON['items']:
-  #   print theJSON["items"]["title"] + "huh"
+# universal variables
+h_poll = re.compile(r'18-US-House', re.IGNORECASE)
+d_response = re.compile(r'democrat', re.IGNORECASE)
+r_response = re.compile(r'republican', re.IGNORECASE)
+date = []
+slug = []
+dem = []
+gop = []
+p_house = []
+
+def getPolls(data):
+    # load JSON
+    theJSON = json.loads(data)
+
+    # call function that loads the date of the poll
+    getDate(theJSON)
+    getSLUG(theJSON)
+    # call function that loads the polling house, Dem result, and GOP result
+    getResults(theJSON)
+
+
+def getDate(JSON):
+    for i in range(0, (len(JSON))):
+        date.append((JSON['items'][i]['end_date']))
+
+def getSLUG(JSON):
+    for i in range(0, (len(JSON))):
+        slug.append((JSON['items'][i]['slug']))
+
+
+def getResults(JSON):
+    for i in range(0, (len(JSON))):
+        p_house.append((JSON['items'][i]['survey_house']))
+        for z in range(0, len(JSON['items'][i]['poll_questions'])):
+             h = h_poll.match(JSON['items'][i]['poll_questions'][z]['question']['slug'])
+             if h:
+                 for b in range(0, len(JSON['items'][i]['poll_questions'][z]['sample_subpopulations'])):
+                    for a in range(0,(len(JSON['items'][i]['poll_questions'][z]['sample_subpopulations'][b]['responses']))):
+                        d = d_response.match((JSON['items'][i]['poll_questions'][z]['sample_subpopulations'][b]['responses'][a]['pollster_label']))
+                        if d:
+                            dem.append(JSON['items'][i]['poll_questions'][z]['sample_subpopulations'][b]['responses'][a]['value'])
+                        r = r_response.match((JSON['items'][i]['poll_questions'][z]['sample_subpopulations'][b]['responses'][a]['pollster_label']))
+                        if r:
+                            gop.append(JSON['items'][i]['poll_questions'][z]['sample_subpopulations'][b]['responses'][a]['value'])
+
+def loadDF():
+    polldata = list(zip(date, slug, p_house, dem, gop))
+    # df = pd.DataFrame.from_list(polldata)
+    df = pd.DataFrame(data = polldata, columns=['date', 'slug', 'p_house', 'dem', 'gop'])
+    print(df)
 
 def main():
-  # define a variable to hold the source URL
+    url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=next_cursor&question=18-US-House"
+    urlData = urlopen(url)
+    data = urlData.read()
 
-  urlData = "https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=next_cursor&question=18-US-House"
+    if urlData.getcode() == 200:
+        getPolls(data)
+        loadDF()
+    else:
+        "error in loading JSON"
 
 
-  # Open the URL and read the data
-  webUrl = urlopen(urlData)
-  if (webUrl.getcode() == 200):
-    print ("hey we in")
-    data = webUrl.read()
-    # print out our customized results
-    # print (data)
-    printResults(data)
-  else:
-    print ("Received an error from server, cannot retrieve results " + str(webUrl.getcode()))
+
 
 if __name__ == "__main__":
   main()
