@@ -15,10 +15,9 @@ dem = []
 gop = []
 p_house = []
 
-def getPolls(data):
+def getPolls(theJSON):
     # load JSON
-    theJSON = json.loads(data)
-
+    # theJSON = json.loads(data)
     # call function that loads the date of the poll
     getDate(theJSON)
     getSLUG(theJSON)
@@ -55,17 +54,28 @@ def loadDF():
     # df = pd.DataFrame.from_list(polldata)
     df = pd.DataFrame(data = polldata, columns=['date', 'slug', 'p_house', 'dem', 'gop'])
     print(df)
+    dtexample = pd.to_datetime(df['date'])
+    print(dtexample)
+    
+
+def loadCursor(url):
+    urlData = urlopen(url)
+    data = urlData.read()
+    theJSON = json.loads(data)
+    print (theJSON['cursor'])
+    if urlData.getcode() == 200:
+        getPolls(theJSON)
+
+    else:
+        "error in loading JSON"
+
+    loadDF()
 
 def main():
     url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=next_cursor&question=18-US-House"
-    urlData = urlopen(url)
-    data = urlData.read()
+    loadCursor(url)
 
-    if urlData.getcode() == 200:
-        getPolls(data)
-        loadDF()
-    else:
-        "error in loading JSON"
+
 
 
 
