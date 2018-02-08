@@ -14,11 +14,14 @@ slug = []
 dem = []
 gop = []
 p_house = []
+cursor = []
+df = []
 
 def getPolls(theJSON):
     # load JSON
     # theJSON = json.loads(data)
     # call function that loads the date of the poll
+    # cursor.append(theJSON['cursor'])
     getDate(theJSON)
     getSLUG(theJSON)
     # call function that loads the polling house, Dem result, and GOP result
@@ -53,31 +56,45 @@ def loadDF():
     polldata = list(zip(date, slug, p_house, dem, gop))
     # df = pd.DataFrame.from_list(polldata)
     df = pd.DataFrame(data = polldata, columns=['date', 'slug', 'p_house', 'dem', 'gop'])
-    print(df)
-    dtexample = pd.to_datetime(df['date'])
-    print(dtexample)
-    
+    return df
+    # print(df)
+    # dtexample = pd.to_datetime(df['date'])
+    # print(dtexample)
 
-def loadCursor(url):
+
+def loadJSONData(url):
     urlData = urlopen(url)
-    data = urlData.read()
-    theJSON = json.loads(data)
-    print (theJSON['cursor'])
     if urlData.getcode() == 200:
-        getPolls(theJSON)
-
+        JSON = urlData.read()
+        JSON = json.loads(JSON)
+        cursor.append(int(JSON['next_cursor']))
+        return JSON
     else:
-        "error in loading JSON"
+        return "error in loading JSON"
 
-    loadDF()
 
 def main():
-    url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=next_cursor&question=18-US-House"
-    loadCursor(url)
-
-
-
-
+    if not cursor:
+        url="https://elections.huffingtonpost.com/pollster/api/v2/polls?question=18-US-House"
+        theJSON = loadJSONData(url)
+        getPolls(theJSON)
+        df = loadDF()
+        main()
+    elif min(cursor) != 27052 and min(cursor) != 27558:
+        url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=" + str(min(cursor)) + "&question=18-US-House"
+        print url
+        theJSON = loadJSONData(url)
+        getPolls(theJSON)
+        df = loadDF()
+        main()
+    else:
+        url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=" + str(min(cursor)) + "&question=18-US-House"
+        print url
+        theJSON = loadJSONData(url)
+        getPolls(theJSON)
+        df = loadDF()
+        print df
+        print 'all done'
 
 
 if __name__ == "__main__":
