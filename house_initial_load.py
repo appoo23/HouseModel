@@ -3,7 +3,8 @@ import json
 import re
 import unicodedata
 import pandas as pd
-
+import mysqlconnect as mysql
+from pandas.io import sql
 
 # universal variables
 h_poll = re.compile(r'18-US-House', re.IGNORECASE)
@@ -15,7 +16,7 @@ dem = []
 gop = []
 p_house = []
 cursor = []
-df = []
+# df = []
 
 def getPolls(theJSON):
     # load JSON
@@ -57,10 +58,17 @@ def loadDF():
     # df = pd.DataFrame.from_list(polldata)
     df = pd.DataFrame(data = polldata, columns=['date', 'slug', 'p_house', 'dem', 'gop'])
     return df
+
     # print(df)
     # dtexample = pd.to_datetime(df['date'])
     # print(dtexample)
 
+
+def publishdf(df):
+    engine = mysql.alchemyConnect()
+    print engine
+    print df
+    df.to_sql('house_polls', engine, if_exists='replace')
 
 def loadJSONData(url):
     urlData = urlopen(url)
@@ -80,20 +88,21 @@ def main():
         getPolls(theJSON)
         df = loadDF()
         main()
-    elif min(cursor) != 27052 and min(cursor) != 27558:
+    elif min(cursor) > 27582:
         url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=" + str(min(cursor)) + "&question=18-US-House"
-        print url
+        # print url
         theJSON = loadJSONData(url)
         getPolls(theJSON)
         df = loadDF()
         main()
-    else:
+    elif min(cursor) == 27582:
         url="https://elections.huffingtonpost.com/pollster/api/v2/polls?cursor=" + str(min(cursor)) + "&question=18-US-House"
-        print url
+        # print url
         theJSON = loadJSONData(url)
         getPolls(theJSON)
         df = loadDF()
-        print df
+        # print df
+        publishdf(df)
         print 'all done'
 
 
