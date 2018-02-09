@@ -5,11 +5,11 @@ from sqlalchemy import create_engine
 def dbconnect():
 
     config = {
-        'host': 'anmandb.cqup14elqcur.us-east-2.rds.amazonaws.com',
-        'user': 'appoo',
-        'password': 'bernhard23',
-        'database': 'analysis',
-        'port': 3306,
+        'host': 'MASK',
+        'user': 'MASK',
+        'password': 'MASK',
+        'database': 'MASK',
+        'port': 'MASK',
         }
 
     cnx = mysql.connector.connect(**config)
