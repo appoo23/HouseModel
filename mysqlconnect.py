@@ -16,7 +16,7 @@ def dbconnect():
     return cnx
 
 def alchemyConnect():
-    connect = 'mysql+mysqldb://appoo:bernhard23@anmandb.cqup14elqcur.us-east-2.rds.amazonaws.com:3306/analysis'
+    connect = 'MASK'
     engine = create_engine(connect)
     return engine
 
